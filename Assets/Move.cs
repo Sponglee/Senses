@@ -5,8 +5,8 @@ using UnityEngine.AI;
 
 public class Move : MonoBehaviour
 {
-    [SerializeField] float speed = 1;
-
+    [SerializeField] private float speed = 1;
+    [SerializeField] private float smoothTime = 0.05f;
     static int idSpeed = Animator.StringToHash("Speed");
 
     Transform cameraTransform;
@@ -16,7 +16,7 @@ public class Move : MonoBehaviour
     void Start()
     {
         cameraTransform = Camera.main.transform;
-        animator = GetComponent<Animator>();
+        // animator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
     }
 
@@ -32,9 +32,9 @@ public class Move : MonoBehaviour
             transform.localRotation = Quaternion.LookRotation(direction);
 
             //Move to direction
-            agent.Move(direction * (Time.fixedDeltaTime * speed));
+            agent.Move(Vector3.Lerp(Vector3.zero, direction * (Time.fixedDeltaTime * speed), smoothTime * Time.fixedDeltaTime));
         }
 
-        animator.SetFloat(idSpeed, move.magnitude);
+        // animator.SetFloat(idSpeed, move.magnitude);
     }
 }
