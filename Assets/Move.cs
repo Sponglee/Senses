@@ -20,7 +20,7 @@ public class Move : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
     }
 
-    void FixedUpdate()
+    void Update()
     {
         var move = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
 
@@ -28,13 +28,60 @@ public class Move : MonoBehaviour
 
         if (move != Vector2.zero)
         {
+            Debug.Log(agent.isOnOffMeshLink);
+            NavMeshHit hit;
+            agent.FindClosestEdge(out hit);
+
+
+
+            if (!OffMeshInProgress)
+            {
+                if (Vector3.Magnitude(hit.position - agent.transform.position) < 0.2f)
+                {
+                    // StartCoroutine(NormalSpeed(agent));
+                    // agent.Raycast()
+
+
+                    Debug.DrawLine(agent.transform.position, agent.transform.position + (hit.position - agent.transform.position).normalized * 10f, Color.red);
+                }
+
+                // return;
+            }
+
             Vector3 direction = cameraForward * move.y + cameraTransform.right * move.x;
             transform.localRotation = Quaternion.LookRotation(direction);
 
-            //Move to direction
-            agent.Move(Vector3.Lerp(Vector3.zero, direction * (Time.fixedDeltaTime * speed), smoothTime * Time.fixedDeltaTime));
+            if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                // Vector3.Magnitude(hit.position - agent.transform.position)
+                Debug.DrawLine(agent.transform.position, agent.transform.position + direction * Time.fixedDeltaTime * 5f * speed, Color.green, 10f);
+
+                agent.Warp(agent.transform.position + direction * (Time.fixedDeltaTime * 10f * speed));
+
+                // agent.Warp(Vector3.Lerp(Vector3.zero, direction * (Time.fixedDeltaTime * 5f * speed), smoothTime * Time.fixedDeltaTime));
+
+            }
+            else
+                //Move to direction
+                agent.Move(Vector3.Lerp(Vector3.zero, direction * (Time.fixedDeltaTime * speed), smoothTime * Time.fixedDeltaTime));
+
+            // animator.SetFloat(idSpeed, move.magnitude);
+        }
+    }
+    bool OffMeshInProgress = false;
+    IEnumerator NormalSpeed(NavMeshAgent agent)
+    {
+        OffMeshInProgress = true;
+        OffMeshLinkData data = agent.currentOffMeshLinkData;
+        Vector3 endPos = data.endPos + Vector3.up * agent.baseOffset;
+        while (agent.transform.position != endPos)
+        {
+            agent.transform.position = Vector3.MoveTowards(agent.transform.position, endPos, agent.speed * Time.deltaTime);
+            yield return null;
         }
 
-        // animator.SetFloat(idSpeed, move.magnitude);
+        OffMeshInProgress = false;
+        agent.CompleteOffMeshLink();
+
     }
 }
