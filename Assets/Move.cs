@@ -68,6 +68,7 @@ public class Move : MonoBehaviour
             // animator.SetFloat(idSpeed, move.magnitude);
         }
     }
+    
     bool OffMeshInProgress = false;
     IEnumerator NormalSpeed(NavMeshAgent agent)
     {
